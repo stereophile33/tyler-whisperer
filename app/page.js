@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 
-const CTX = `Tyler Palmer profile: CEO PayClearly merging with Interopay. Conclusion-first communicator. Lettered options with tradeoffs. Precise numbers. Zero corporate fluff. Terse when not ready = processing. Pre-empts counterarguments. Root cause not symptoms. Casual channels: lowercase, action-first, no pleasantries. Responds to: numbers first, clear ask, dense brevity, proactive FYIs. Known Jonathan Ortiz-Myers since 2019. Genuine warmth under directness. Payments savant, likely on spectrum.`;
+const CTX = `Tyler Palmer profile: CEO PayClearly merging with Interopay. Conclusion-first communicator. Lettered options with tradeoffs. Precise numbers. Zero corporate fluff. Terse when not ready = processing. Pre-empts counterarguments. Root cause not symptoms. Casual channels: lowercase, action-first, no pleasantries. Responds to: numbers first, clear ask, dense brevity, proactive FYIs. Known Jonathan Ortiz-Myers since 2019. Genuine warmth under directness. Payments savant, likely on spectrum. Responds at all hours — 5am, late nights, weekends — no predictable window. Timing advice must be based on content and context, never generic email best-practices.`;
 
 const NO_HALLUCINATE = `CRITICAL: Do NOT invent, fabricate, or add ANY factual information not explicitly present in the original text. No made-up numbers, KPIs, revenue figures, role titles, names, dates, or metrics. Only rewrite tone, structure, and phrasing. All original facts must remain exactly as stated.`;
 
@@ -128,7 +128,7 @@ One piece of framing Jonathan should add before Tyler reads this? One sentence.`
         { label: 'Timing', q: `${CTX}${g}
 Content: ${snippet}
 
-When should Jonathan send this for max receptivity from Tyler? One sentence.` },
+Tyler responds at all hours with no predictable pattern. Based purely on the content and the current relationship dynamics, is there a strategically smart moment to send this — or does timing not matter here? One sentence. Do NOT reference time of day or day of week unless there is a specific content-based reason.` },
         { label: 'If no reply', q: `${CTX}${g}
 Content: ${snippet}
 
@@ -230,4 +230,4 @@ Best next move for Jonathan? Two sentences max. Complete both.` },
       </div>
     </>
   );
-}
+                }
