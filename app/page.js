@@ -1,7 +1,9 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 
 const CTX = `Tyler Palmer profile: CEO PayClearly merging with Interopay. Conclusion-first communicator. Lettered options with tradeoffs. Precise numbers. Zero corporate fluff. Terse when not ready = processing. Pre-empts counterarguments. Root cause not symptoms. Casual channels: lowercase, action-first, no pleasantries. Responds to: numbers first, clear ask, dense brevity, proactive FYIs. Known Jonathan Ortiz-Myers since 2019. Genuine warmth under directness. Payments savant, likely on spectrum.`;
+
+const HALLUCINATION_RULE = `CRITICAL: Do NOT invent, fabricate, or add ANY factual information that is not explicitly present in the original draft. This includes numbers, percentages, KPIs, revenue figures, role titles, names, dates, metrics, or any other data. Your ONLY job is to rewrite the tone, structure, and phrasing to match Tyler's communication style. All original facts must remain exactly as stated.`;
 
 async function api(prompt) {
   const r = await fetch('/api/whisper', {
@@ -52,31 +54,31 @@ export default function Home() {
   function updateLast(sec) { setSections(prev => { const n=[...prev]; n[n.length-1]=sec; return n; }); }
 
   const inp = { background: '#141414', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, color: '#e8e6e1', fontFamily: 'inherit', fontSize: 13, lineHeight: 1.65, padding: '8px 12px', outline: 'none', width: '100%' };
-  const chip = (on) => ({ background: on?'rgba(200,169,110,0.12)':'none', border: `1px solid ${on?'#c8a96e':'rgba(255,255,255,0.08)'}`, borderRadius: 3, color: on?'#c8a96e':'#6b6866', fontFamily:'monospace', fontSize:10, padding:'3px 8px', cursor:'pointer' });
-  const tab = (on) => ({ background: on?'rgba(200,169,110,0.12)':'none', border:`1px solid ${on?'#c8a96e':'rgba(255,255,255,0.08)'}`, color:on?'#c8a96e':'#6b6866', fontFamily:'monospace', fontSize:11, letterSpacing:'0.08em', textTransform:'uppercase', padding:'5px 16px', cursor:'pointer' });
+  const chip = (on) => ({ background: on?'rgba(200,169,110,0.12)':'none', border: on?'1px solid #c8a96e':'1px solid rgba(255,255,255,0.08)', borderRadius: 3, color: on?'#c8a96e':'#6b6866', fontFamily:'monospace', fontSize:10, padding:'3px 8px', cursor:'pointer' });
+  const tab = (on) => ({ background: on?'rgba(200,169,110,0.12)':'none', border: on?'1px solid #c8a96e':'1px solid rgba(255,255,255,0.08)', color:on?'#c8a96e':'#6b6866', fontFamily:'monospace', fontSize:11, letterSpacing:'0.08em', textTransform:'uppercase', padding:'5px 16px', cursor:'pointer' });
 
   async function runDraft() {
     if (!draft.trim()) return;
     setLoading(true); setSections([]);
     const g = goal ? `\nGoal: ${goal}` : '';
-    const base = `${CTX}${g}\nDraft (${ctx}): ${draft}`;
+    const base = `${CTX}${g}\n${HALLUCINATION_RULE}\nDraft (${ctx}): ${draft}`;
     try {
       addSection({ label:'Rewriting...', content:null, type:'loader' });
-      const rewrite = await api(`${base}\n\nRewrite this ${ctx} for Tyler. Reply with ONLY the rewritten text. No labels.`);
+      const rewrite = await api(`${base}\n\nRewrite this ${ctx} for Tyler. Reply with ONLY the rewritten text. No labels, no explanation. Do not add any information not in the draft.`);
       updateLast({ label:'Rewritten version', content:rewrite, type:'rewrite' });
 
       addSection({ label:'Changes...', content:null, type:'loader' });
-      const changes = await api(`${base}\n\nRewritten: ${rewrite}\n\nList the 3 most important changes. Numbered, one sentence each. Stop after 3.`);
+      const changes = await api(`${CTX}${g}\nOriginal draft: ${draft}\nRewritten: ${rewrite}\n\nList the 3 most important changes in tone/structure/phrasing. Numbered, one sentence each. Do not mention any invented content.`);
       updateLast({ label:'What changed & why', content:changes, type:'plain' });
 
       addSection({ label:'Risks...', content:null, type:'loader' });
-      const risk = await api(`${base}\n\nBiggest risk before sending? One sentence. Start directly.`);
+      const risk = await api(`${CTX}${g}\nDraft: ${draft}\n\nBiggest risk before sending this to Tyler? One sentence. Start directly.`);
       updateLast({ label:'Watch out for', content:risk, type:'red' });
 
       for (const s of [
-        { label:'Framing', q:`${base}\n\nOne piece of framing Jonathan should add before sending this? One sentence.` },
-        { label:'Timing',  q:`${base}\n\nWhen should Jonathan send for max receptivity from Tyler? One sentence.` },
-        { label:'If no reply', q:`${base}\n\nIf Tyler doesn't respond in 48hrs, what should Jonathan do? One sentence.` },
+        { label:'Framing', q:`${CTX}${g}\nDraft: ${draft}\n\nOne piece of framing or context Jonathan should add before sending? One sentence. Do not invent data.` },
+        { label:'Timing',  q:`${CTX}${g}\nDraft: ${draft}\n\nWhen should Jonathan send this for max receptivity from Tyler? One sentence.` },
+        { label:'If no reply', q:`${CTX}${g}\nDraft: ${draft}\n\nIf Tyler does not respond in 48hrs, what should Jonathan do? One sentence.` },
       ]) {
         addSection({ label:s.label+'...', content:null, type:'loader' });
         const ans = await api(s.q);
@@ -93,9 +95,9 @@ export default function Home() {
     try {
       for (const s of [
         { label:'What he means', type:'rewrite', q:`${base}\n\nWhat is Tyler actually communicating? Two sentences max. Start directly.` },
-        { label:'Tone read', type:'plain', q:`${base}\n\nTyler's tone? Name it + one signal. Two sentences max.` },
-        { label:'Friction signals', type:'friction', q:`${base}\n\nFriction signals? If yes: one sentence. If no: say exactly "None detected."` },
-        { label:'Suggested next move', type:'plain', q:`${base}\n\nBest next move for Jonathan? Two sentences max. Complete both.` },
+        { label:'Tone read', type:'plain', q:`${base}\n\nTyler's tone? Name it and give one specific signal. Two sentences max.` },
+        { label:'Friction signals', type:'friction', q:`${base}\n\nFriction signals? If yes: one sentence naming it. If no: say exactly "None detected."` },
+        { label:'Suggested next move', type:'plain', q:`${base}\n\nBest next move for Jonathan? Two sentences max. Complete both sentences.` },
       ]) {
         addSection({ label:s.label+'...', content:null, type:'loader' });
         const ans = await api(s.q);
@@ -132,7 +134,7 @@ export default function Home() {
               <span style={{ fontFamily:'monospace', fontSize:10, letterSpacing:'0.1em', color:'#6b6866', textTransform:'uppercase' }}>Your draft</span>
               <textarea value={draft} onChange={e=>setDraft(e.target.value)} placeholder="Paste your draft here..." style={{ ...inp, flex:1, minHeight:180, resize:'vertical' }} />
               <div style={{ background:'#1c1c1c', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'8px 12px', fontSize:12, color:'#6b6866' }}>
-                <strong style={{ color:'#c8a96e', fontWeight:500 }}>Tyler model v2.</strong> Email + Slack + 5k iMessages (2019–2026) + voicemails.
+                <strong style={{ color:'#c8a96e', fontWeight:500 }}>Tyler model v2.</strong> Rewrites tone only — never invents data.
               </div>
               <button onClick={runDraft} disabled={loading} style={{ alignSelf:'flex-start', background:'#c8a96e', border:'none', color:'#0d0d0d', fontFamily:'monospace', fontSize:11, fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', padding:'7px 18px', borderRadius:4, cursor:loading?'not-allowed':'pointer', opacity:loading?0.4:1 }}>Whisper it</button>
             </>) : (<>
@@ -153,4 +155,4 @@ export default function Home() {
       </div>
     </>
   );
-}
+                                                                   }
